@@ -32,4 +32,21 @@ Predict the probability (between 0 and 1) that a client will buy a U-Lipolysis t
 - **buy_plan:** A float between 0.0 and 1.0 indicating the predicted probability of purchase.
 
 
+## Follow Step to execute the application
+
+-  **Step 1. Create Virtual Environment using Conda**
+conda create -p virtual_env python==3.11 -y
+
+-  **Step 2. Activate vitual enviroment**
+conda acitvate <<vitual_env_name>>/
+conda activate virtual_env/
+
+-  **Step 4. Install Packages**
+pip install -r requirements.txt
+
+-  **Step 3. Run Streamlit App**
+streamlit run <<file_name>>
+
+
+
 
