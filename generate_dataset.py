@@ -5,13 +5,13 @@ import random
 def generate_dataset():
 
     # Number of records
-    num_records = 5000
+    num_records = 10000
 
     # Random seed for reproducibility
     np.random.seed(42)
 
     # Age between 15 and 80
-    age = np.random.randint(15, 90, num_records)
+    age = np.random.randint(20, 90, num_records)
 
     # Weight between 30 and 120 kg
     weight = np.random.uniform(30, 120, num_records).round(1) # 55-110
@@ -65,10 +65,27 @@ def generate_dataset():
     job_type = np.random.choice(['salried', 'self_employed', 'business', "un-employed"], num_records)
 
     # Body fat percentage: random realistic numbers 10-40%
-    body_fat_percentage = np.random.uniform(10, 40, num_records).round(1) # men: 10-50: women # 20-50
+    #if wieght between 50 to 70 then body_fat_percentage in between [20-30] 
+    # if weight between 70-90 then body_fat_percentage[30-35] 
+    # if weight between 90-120 then body_fat_percentage in between [35-40]
+    for i in range(num_records):
+        if weight[i] < 50:
+            body_fat_percentage = np.random.uniform(10, 20, num_records).round(1)
+        elif 50 <= weight[i] <= 70:
+            body_fat_percentage = np.random.uniform(20, 30, num_records).round(1)
+        elif 70 < weight[i] <= 90:
+            body_fat_percentage = np.random.uniform(30, 35, num_records).round(1)
+        elif 90 < weight[i] <= 120:
+            body_fat_percentage = np.random.uniform(35, 40, num_records).round(1)
+    # if 50 <= weight <= 70:
+    #     body_fat_percentage = np.random.uniform(20, 30, num_records).round
+    # elif 70 <= weight <= 90:
+    #     body_fat_percentage = np.random.uniform(30, 35, num_records).round(1) # men: 10-50: women # 20-50
+    # elif 90 < weight <= 120:
+    #     body_fat_percentage = np.random.uniform(35, 40, num_records).round(1)
 
     # Visceral fat percentage: random realistic numbers 1-20
-    visceral_fat_percentage = np.random.uniform(1, 20, num_records).round(1) # 2 min - 30 max
+    visceral_fat_percent = np.random.uniform(1, 20, num_records).round(1) # 2 min - 30 max
 
     # Locations in Mumbai
     locations = [
@@ -80,7 +97,7 @@ def generate_dataset():
     target_weight_loss = np.random.randint(2, 50, num_records) # 2 - 50 
 
     # Work stress level 1-10
-    work_stress_level = np.random.randint(1, 11, num_records)
+    work_stress_level = np.random.randint(1, 10, num_records)
 
     # Physical activeness: Low, Moderate, High
     physical_activeness = np.random.choice(['Low', 'Moderate', 'High'], num_records)
@@ -98,7 +115,7 @@ def generate_dataset():
         'profession': profession,
         'job_type': job_type,
         'body_fat_percentage': body_fat_percentage,
-        'visceral_fat_percentage': visceral_fat_percentage,
+        'visceral_fat_percent': visceral_fat_percent,
         'location': location,
         'target_weight_loss': target_weight_loss,
         'work_stress_level': work_stress_level,
@@ -117,49 +134,51 @@ def calculate_probability_to_buy_service(row):
     
     # BMI
     if row['bmi'] > 30:
-        score += 0.7
-    elif 20 <= row['bmi'] <= 30:
         score += 0.6
+    elif 20 <= row['bmi'] <= 30:
+        score += 0.4
     elif 18 <= row['bmi'] < 20:
-        score += 0.3
+        score += 0.2
+    elif row['bmi'] < 18:
+        score -= 0.9
 
     # Job type
     job = row['job_type'].lower()
     if job == 'business':
-        score += 0.7
+        score += 0.6
     elif job == 'unemployed':
-        score -= 0.4
+        score -= 0.5
     elif job in ['salaried', 'self_employed']:
-        score += 0.5
+        score += 0.4
 
     # Medical condition
     med = str(row['is_medical_condition']).lower()
     if med == 'yes':
         score += 0.6
     else:
-        score -= 0.3
+        score -= 0.4
 
     # Target weight loss
     twl = row['target_weight_loss']
     if 2 <= twl < 5:
-        score -= 0.2
+        score -= 0.3
     elif 5 <= twl < 10:
-        score += 0.3
+        score += 0.2
     elif 10 <= twl < 20:
-        score += 0.5
+        score += 0.4
     elif twl >= 20:
         score += 0.8
 
     # Age
     age = row['age']
     if 18 <= age < 25:
-        score -= 0.2
+        score -= 0.3
     elif 25 <= age < 35:
-        score += 0.1
+        score -= 0.1
     elif 35 <= age < 45:
-        score += 0.4
+        score += 0.3
     elif 45 <= age < 55:
-        score += 0.6
+        score += 0.5
     elif age >= 55:
         score += 0.8
 
@@ -176,18 +195,6 @@ def calculate_probability_to_buy_service(row):
     elif bfp >= 30:
         score += 0.5
 
-    # Visceral fat percentage
-    vfp = row['visceral_fat_percentage']
-    if 1 <= vfp < 5:
-        score -= 0.5
-    elif 5 <= vfp < 10:
-        score -= 0.2
-    elif 10 <= vfp < 15:
-        score += 0.2
-    elif 15 <= vfp < 20:
-        score += 0.3
-    elif vfp >= 20:
-        score += 0.5
 
     # Work stress level
     wsl = row['work_stress_level']
@@ -198,14 +205,14 @@ def calculate_probability_to_buy_service(row):
     elif 7 <= wsl <= 8:
         score += 0.2
     elif 9 <= wsl <= 10:
-        score += 0.4
+        score += 0.2
 
     # Physical activeness
     pa = str(row['physical_activeness']).lower()
     if pa == 'low':
         score += 0.2
     elif pa == 'moderate':
-        score += 0.1
+        score -= 0.2
     elif pa == 'high':
         score -= 0.3
 
@@ -214,7 +221,7 @@ def calculate_probability_to_buy_service(row):
     if loc in ['mumbai', 'thane']:
         score += 0.2
     elif loc in ['pune', 'nashik', 'solapur', 'aurangabad', 'nagpur']:
-        score -= 0.7
+        score -= 0.6
     elif loc in ['navi mumbai', 'kalyan']:
         score -= 0.1
     elif loc == 'bhiwandi':
@@ -230,6 +237,7 @@ def calculate_probability_to_buy_service(row):
     return score
 
 def load_and_calculate_probability():
+    generate_dataset()  # Ensure the dataset is generated first
     # Load your client data CSV file
     df = pd.read_csv("client_data.csv") 
 
@@ -239,7 +247,7 @@ def load_and_calculate_probability():
     df.to_csv("client_data_with_score.csv", index=False)
     print("Score column added and csv saved successfully!")
 
-#load_and_calculate_probability()
+load_and_calculate_probability()
 
 
 # 1. 30 > BMI = 0.9 
@@ -293,11 +301,11 @@ def load_and_calculate_probability():
 # if body_fat_percentage is between 25-30 then score = score + 0.3
 # if body_fat_percentage is above 30 then score = score + 0.5
 
-# if visceral_fat_percentage is between 1-5 then score = score - 0.5
-# if visceral_fat_percentage is between 5-10 then score = score - 0.2
-# if visceral_fat_percentage is between 10-15 then score = score + 0.2
-# if visceral_fat_percentage is between 15-20 then score = score + 0.3
-# if visceral_fat_percentage is above 20 then score = score + 0.5
+# if visceral_fat_percent is between 1-5 then score = score - 0.5
+# if visceral_fat_percent is between 5-10 then score = score - 0.2
+# if visceral_fat_percent is between 10-15 then score = score + 0.2
+# if visceral_fat_percent is between 15-20 then score = score + 0.3
+# if visceral_fat_percent is above 20 then score = score + 0.5
 
 # if work_stress_level is between 1-3 then score = score - 0.2
 # if work_stress_level is between 4-6 then score = score + 0.1
